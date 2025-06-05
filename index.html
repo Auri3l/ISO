@@ -383,7 +383,9 @@
                 'HUK': { name: 'Yasal ve İdari İzinler', types: { 'YR': 'Yapı Ruhsatı', 'YKI': 'Yapı Kullanım İzin Belgesi (İskân)', 'BEL': 'Belediye Yazışması', 'MYB': 'Müteahhit Yetki Belgesi' }},
                 'FIN': { name: 'Finansal Kayıtlar', types: { 'HAK': 'Hakediş Raporu', 'FAT': 'Fatura', 'ODE': 'Ödeme Emri/Dekontu', 'BUT': 'Bütçe Raporu' }},
                 'PYI': { name: 'Proje Yönetimi ve İletişim', types: { 'TT': 'Toplantı Tutanağı', 'SDR': 'Saha Denetim Raporu', 'IPR': 'İş Programı', 'DTF': 'Değişiklik Talep Formu' }},
-                'TAP': { name: 'Tapu ve Mülkiyet Kayıtları', types: { 'ATS': 'Arsa Tapu Senedi', 'KIB': 'Kat İrtifakı Belgesi', 'KMT': 'Kat Mülkiyeti Tapusu', 'TML': 'Temlik Sözleşmesi/Tapusu' }}
+                'TAP': { name: 'Tapu ve Mülkiyet Kayıtları', types: { 'ATS': 'Arsa Tapu Senedi', 'KIB': 'Kat İrtifakı Belgesi', 'KMT': 'Kat Mülkiyeti Tapusu', 'TML': 'Temlik Sözleşmesi/Tapusu' }},
+                'ISG': { name: 'İş Sağlığı ve Güvenliği', types: { 'RKR': 'Ramak Kala Raporu', 'KZR': 'Kaza Raporu', 'RSK': 'Risk Değerlendirmesi', 'TUT': 'İSG Tutanağı', 'EGT': 'İSG Eğitimi Kaydı' }},
+                'KLK': { name: 'Kalite Kontrol', types: { 'DOF': 'Düzeltici Önleyici Faaliyet Raporu', 'MTR': 'Malzeme Test Raporu (Genel)', 'IKR': 'İmalat Kontrol Raporu', 'NMH': 'Numune Onay Formu', 'UKR': 'Uygunsuzluk Raporu' }}
             };
 
             const projeKoduEl = document.getElementById('projeKodu');
@@ -430,7 +432,7 @@
                 let kisaAciklama = kisaAciklamaEl.value.trim().replace(/\s+/g, '_');
                 kisaAciklama = kisaAciklama ? `_${kisaAciklama}` : '';
 
-                const uzantiMap = { 'TEK': '.dwg', 'FIN': '.xlsx', 'PYI': '.docx' };
+                const uzantiMap = { 'TEK': '.dwg', 'FIN': '.xlsx', 'PYI': '.docx', 'ISG': '.docx', 'KLK': '.docx' };
                 const uzanti = uzantiMap[belgeKategori] || '.pdf';
 
                 sonucAdiEl.textContent = `${projeKodu}_${belgeKategori}_${belgeTipi}_${tarih}_${versiyon}${kisaAciklama}${uzanti}`;
