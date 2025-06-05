@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISO 15489-1: İnteraktif Dosya Yönetim Kılavuzu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony (Warm Neutral, Terracotta Accent, Slate Grey Text) -->
+    <!-- Application Structure Plan: A task-oriented single-page application with a top navigation bar (Home, Lifecycle, Naming Tool, Archiving Rules, Principles). This structure was chosen over a linear report format to empower users to directly access the tools and information most relevant to them. The interactive Project Lifecycle diagram and File Naming Tool transform passive information into active utilities, which is the primary goal for usability. The flow is non-linear, allowing users to jump between conceptual understanding (Principles) and practical application (Tools). -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Project Lifecycle (Table 1) -> Goal: Organize/Change -> Viz: Interactive HTML/CSS process flow diagram -> Interaction: Click a stage to show associated documents. Justification: More engaging and space-efficient than a large static table. Library/Method: HTML/Tailwind/JS.
+        - Report Info: File Naming Rules (Table 2) -> Goal: Organize/Utility -> Viz: Interactive Form -> Interaction: User fills form, filename is generated in real-time with a copy button. Justification: Turns a reference table into a practical, error-reducing tool. Library/Method: HTML/JS.
+        - Report Info: Legal Retention Periods (Table 3) -> Goal: Compare/Inform -> Viz: Bar Chart -> Interaction: Hover for details (law, notes), filter buttons to show specific categories. Justification: Visualizes time-based data for quick comparison, better than scanning a table. Library/Method: Chart.js/Canvas.
+        - Report Info: ISO Principles -> Goal: Inform -> Viz: HTML/CSS card layout. Justification: Clean, modern, easily digestible presentation. Library/Method: HTML/Tailwind. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF5; 
+            color: #3D405B;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #E07A5F;
+            border-bottom-color: #E07A5F;
+        }
+        .btn-primary {
+            background-color: #3D405B;
+            color: #FFFFFF;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #55597d;
+        }
+        .btn-secondary {
+            background-color: #81B29A;
+            color: #FFFFFF;
+            transition: background-color 0.3s;
+        }
+        .btn-secondary:hover {
+            background-color: #9ac4af;
+        }
+        .btn-accent {
+            background-color: #E07A5F;
+            color: #FFFFFF;
+            transition: background-color 0.3s;
+        }
+        .btn-accent:hover {
+            background-color: #e68f7a;
+        }
+        .card {
+            background-color: #FFFFFF;
+            border: 1px solid #F0EAD6;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .lifecycle-stage {
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .lifecycle-stage.active {
+            border-color: #E07A5F;
+            background-color: #fff;
+            color: #3D405B;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+                max-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+        <div class="container mx-auto px-4">
+            <nav class="flex items-center justify-between h-20">
+                <div class="text-2xl font-bold text-[#3D405B]">
+                    ISO 15489-1 Kılavuzu
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#anasayfa" class="nav-link active">Anasayfa</a>
+                    <a href="#dongu" class="nav-link">Yaşam Döngüsü</a>
+                    <a href="#arac" class="nav-link">Dosya Adlandırma</a>
+                    <a href="#arsiv" class="nav-link">Arşivleme Kuralları</a>
+                    <a href="#ilkeler" class="nav-link">Temel İlkeler</a>
+                </div>
+                 <div class="md:hidden">
+                    <select id="mobile-nav" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        <option value="anasayfa">Anasayfa</option>
+                        <option value="dongu">Yaşam Döngüsü</option>
+                        <option value="arac">Dosya Adlandırma</option>
+                        <option value="arsiv">Arşivleme Kuralları</option>
+                        <option value="ilkeler">Temel İlkeler</option>
+                    </select>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 md:py-12">
+
+        <section id="anasayfa" class="content-section">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4 text-[#3D405B]">İnşaat Projelerinde Kayıt Yönetiminde Ustalaşın</h1>
+                <p class="text-lg md:text-xl max-w-3xl mx-auto text-gray-600">ISO 15489-1 standardı ile kat karşılığı projelerinizde verimliliği artırın, riskleri azaltın ve şeffaflığı sağlayın. Bu interaktif kılavuz, karmaşık kuralları pratik adımlara dönüştürmenize yardımcı olmak için tasarlandı.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8 text-center">
+                <div class="card p-8 rounded-lg">
+                    <div class="text-5xl mb-4 text-[#81B29A]">✓</div>
+                    <h3 class="text-xl font-bold mb-2">Yasal Uyumluluk</h3>
+                    <p class="text-gray-600">Türk Ticaret Kanunu, VUK ve SGK mevzuatına uygun saklama süreleri ile yasal riskleri en aza indirin.</p>
+                </div>
+                <div class="card p-8 rounded-lg">
+                    <div class="text-5xl mb-4 text-[#E07A5F]">⚙️</div>
+                    <h3 class="text-xl font-bold mb-2">Operasyonel Verimlilik</h3>
+                    <p class="text-gray-600">Standart dosya isimleri ve sınıflandırma ile doğru bilgiye saniyeler içinde ulaşın, zaman kaybını önleyin.</p>
+                </div>
+                <div class="card p-8 rounded-lg">
+                    <div class="text-5xl mb-4 text-[#F2CC8F]">🤝</div>
+                    <h3 class="text-xl font-bold mb-2">Paydaş Güveni</h3>
+                    <p class="text-gray-600">Şeffaf ve düzenli kayıt yönetimi ile arsa sahipleri ve iş ortaklarınızla güvene dayalı ilişkiler kurun.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="dongu" class="content-section hidden">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-3">İnteraktif Proje Yaşam Döngüsü</h2>
+                <p class="text-lg max-w-3xl mx-auto text-gray-600">Bir "Kat Karşılığı" projesinin her aşamasında üretilen kritik belgeleri keşfedin. İlgili belgeleri ve faaliyetleri görmek için bir aşamaya tıklayın.</p>
+            </div>
+
+            <div class="relative overflow-x-auto pb-4">
+                <div class="flex items-center space-x-2 md:space-x-4 min-w-max">
+                    <div class="flex-1 lifecycle-stage p-4 rounded-lg text-center bg-gray-100" data-stage="1">
+                        <span class="font-bold text-sm md:text-base">1. Anlaşma</span>
+                    </div>
+                    <div class="text-gray-400 font-bold text-xl">&rarr;</div>
+                    <div class="flex-1 lifecycle-stage p-4 rounded-lg text-center bg-gray-100" data-stage="2">
+                        <span class="font-bold text-sm md:text-base">2. Projelendirme</span>
+                    </div>
+                    <div class="text-gray-400 font-bold text-xl">&rarr;</div>
+                    <div class="flex-1 lifecycle-stage p-4 rounded-lg text-center bg-gray-100" data-stage="3">
+                        <span class="font-bold text-sm md:text-base">3. İzinler</span>
+                    </div>
+                    <div class="text-gray-400 font-bold text-xl">&rarr;</div>
+                    <div class="flex-1 lifecycle-stage p-4 rounded-lg text-center bg-gray-100" data-stage="4">
+                        <span class="font-bold text-sm md:text-base">4. İnşaat</span>
+                    </div>
+                    <div class="text-gray-400 font-bold text-xl">&rarr;</div>
+                    <div class="flex-1 lifecycle-stage p-4 rounded-lg text-center bg-gray-100" data-stage="5">
+                        <span class="font-bold text-sm md:text-base">5. Teslimat</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="lifecycle-details" class="mt-8">
+            </div>
+        </section>
+
+        <section id="arac" class="content-section hidden">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-3">Otomatik Dosya İsimlendirme Aracı</h2>
+                <p class="text-lg max-w-3xl mx-auto text-gray-600">Hataları önlemek ve tutarlılığı sağlamak için standartlaştırılmış dosya adlarını saniyeler içinde oluşturun. Formu doldurun ve sonucu kopyalayın.</p>
+            </div>
+            <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-8 items-start">
+                <div class="card p-6 md:p-8 rounded-lg space-y-4">
+                    <div>
+                        <label for="projeKodu" class="block text-sm font-medium text-gray-700">Proje Kodu</label>
+                        <input type="text" id="projeKodu" placeholder="Örn: IST24MAR001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div>
+                        <label for="belgeKategori" class="block text-sm font-medium text-gray-700">Belge Kategorisi</label>
+                        <select id="belgeKategori" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </select>
+                    </div>
+                    <div>
+                        <label for="belgeTipi" class="block text-sm font-medium text-gray-700">Belge Tipi</label>
+                        <select id="belgeTipi" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </select>
+                    </div>
+                    <div>
+                        <label for="tarih" class="block text-sm font-medium text-gray-700">Tarih</label>
+                        <input type="date" id="tarih" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                     <div>
+                        <label for="versiyon" class="block text-sm font-medium text-gray-700">Versiyon</label>
+                        <input type="text" id="versiyon" placeholder="Örn: V01" value="V01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div>
+                        <label for="kisaAciklama" class="block text-sm font-medium text-gray-700">Kısa Açıklama (İsteğe bağlı)</label>
+                        <input type="text" id="kisaAciklama" placeholder="Örn: ZeminKatPlani" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg sticky top-24">
+                    <h3 class="font-bold text-lg mb-2">Oluşturulan Dosya Adı:</h3>
+                    <div id="sonucWrapper" class="bg-white p-4 rounded-md shadow-inner break-words">
+                        <p id="sonucAdi" class="text-gray-800 font-mono"></p>
+                    </div>
+                     <div id="copy-message" class="text-green-600 mt-2 text-sm font-medium hidden">Kopyalandı!</div>
+                    <button id="kopyalaButton" class="btn-accent w-full py-2 px-4 rounded-md mt-4 font-semibold">
+                        Kopyala
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="arsiv" class="content-section hidden">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-3">Yasal Saklama Süreleri Grafiği</h2>
+                <p class="text-lg max-w-3xl mx-auto text-gray-600">Türkiye'deki yasal mevzuata göre temel belge türleri için zorunlu minimum saklama sürelerini görsel olarak karşılaştırın. Detaylar için çubukların üzerine gelin.</p>
+            </div>
+            <div class="chart-container">
+                <canvas id="retentionChart"></canvas>
+            </div>
+        </section>
+
+        <section id="ilkeler" class="content-section hidden">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-3">ISO 15489-1'in Dört Temel İlkesi</h2>
+                <p class="text-lg max-w-3xl mx-auto text-gray-600">Yetkili ve güvenilir bir kayıt yönetim sisteminin temelini oluşturan ana prensipleri anlayın.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="card p-6 rounded-lg text-center">
+                    <h3 class="font-bold text-xl mb-3 text-[#3D405B]">Özgünlük</h3>
+                    <p class="text-gray-600">Kaydın iddia edildiği şey olduğu, iddia edilen kişi tarafından, iddia edilen zamanda oluşturulduğu kanıtlanabilmelidir. Kaynağın doğruluğu esastır.</p>
+                </div>
+                <div class="card p-6 rounded-lg text-center">
+                    <h3 class="font-bold text-xl mb-3 text-[#81B29A]">Güvenilirlik</h3>
+                    <p class="text-gray-600">Kaydın içeriği, belgelediği olguları ve işlemleri tam ve doğru bir şekilde temsil etmelidir. İçeriğin doğruluğuna güvenilebilmelidir.</p>
+                </div>
+                 <div class="card p-6 rounded-lg text-center">
+                    <h3 class="font-bold text-xl mb-3 text-[#E07A5F]">Bütünlük</h3>
+                    <p class="text-gray-600">Kaydın eksiksiz ve değiştirilmemiş olması, yetkisiz değişikliklere karşı korunması gerekir. Kaydın tahrif edilmediğinden emin olunmalıdır.</p>
+                </div>
+                 <div class="card p-6 rounded-lg text-center">
+                    <h3 class="font-bold text-xl mb-3 text-[#F2CC8F]">Kullanılabilirlik</h3>
+                    <p class="text-gray-600">Kaydın ihtiyaç duyulduğunda bulunabilir, erişilebilir, sunulabilir ve yorumlanabilir olması gerekir. Kayda erişim ve anlama kolaylığı sağlanmalıdır.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const sections = document.querySelectorAll('.content-section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const mobileNav = document.getElementById('mobile-nav');
+
+            function showSection(targetId) {
+                sections.forEach(section => {
+                    if (section.id === targetId) {
+                        section.classList.remove('hidden');
+                    } else {
+                        section.classList.add('hidden');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    if (link.getAttribute('href') === `#${targetId}`) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+                
+                if (mobileNav.value !== targetId) {
+                    mobileNav.value = targetId;
+                }
+            }
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = e.currentTarget.getAttribute('href').substring(1);
+                    showSection(targetId);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            });
+
+            mobileNav.addEventListener('change', (e) => {
+                showSection(e.target.value);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                showSection(hash);
+            } else {
+                showSection('anasayfa');
+            }
+
+
+            const lifecycleStages = document.querySelectorAll('.lifecycle-stage');
+            const lifecycleDetailsContainer = document.getElementById('lifecycle-details');
+            const lifecycleData = {
+                '1': {
+                    title: '1. Anlaşma / Ön Planlama Aşaması',
+                    description: 'Arsa sahibi ile müteahhit arasındaki müzakereler yapılır ve projenin temeli olan sözleşme imzalanır.',
+                    docs: ['Kat Karşılığı İnşaat Sözleşmesi', 'Ek Protokoller', 'Vekaletname', 'Konsept Projeler', 'Teminat Mektupları', 'Arsa Tapu Kayıtları']
+                },
+                '2': {
+                    title: '2. Projelendirme Aşaması',
+                    description: 'Mimari ve mühendislik projeleri hazırlanır, malzeme ve kalite standartlarını detaylandıran teknik şartname geliştirilir.',
+                    docs: ['Teknik Şartname (Sözleşme Eki)', 'Mimari, Statik, Mekanik, Elektrik Projeleri', 'Zemin Etüd Raporu', 'Keşif Özeti', 'Proje Bütçesi']
+                },
+                '3': {
+                    title: '3. İzinlerin Alınması Aşaması',
+                    description: 'Belediyelerden ve diğer ilgili kurumlardan yasal izinlerin alınması sürecidir. En önemli belge Yapı Ruhsatıdır.',
+                    docs: ['Yapı Ruhsatı Başvurusu ve Eki', 'Onaylı Projeler', 'ÇED Raporu (gerekirse)', 'Harç ve Vergi Ödemeleri', 'Resmi Kurum Yazışmaları']
+                },
+                '4': {
+                    title: '4. İnşaat ve Denetim Aşaması',
+                    description: 'Arsanın teslimi ile başlar. Altyapıdan ince işlere kadar tüm imalatlar yapılır ve denetlenir.',
+                    docs: ['Yapı Ruhsatı', 'Alt Yüklenici Sözleşmeleri', 'Malzeme Onayları', 'Test Raporları (Beton, Demir)', 'Hakediş Raporları', 'Saha Raporları', 'Yapı Denetim Raporları', 'Kat İrtifakı Kurulum Belgeleri']
+                },
+                '5': {
+                    title: '5. Teslimat ve Son İşlemler Aşaması',
+                    description: 'Bitirme işleri tamamlanır, Yapı Kullanım İzin Belgesi (İskân) alınır ve daireler sözleşmeye uygun olarak teslim edilir.',
+                    docs: ['Yapı Kullanım İzin Belgesi (İskân)', 'As-Built Çizimler', 'Garanti Belgeleri', 'Kesin Hesap', 'Teslim Tutanakları', 'Kat Mülkiyeti Tapuları']
+                }
+            };
+
+            function showLifecycleDetails(stageId) {
+                const data = lifecycleData[stageId];
+                if (!data) return;
+
+                lifecycleDetailsContainer.innerHTML = `
+                    <div class="card p-6 rounded-lg animate-fade-in">
+                        <h3 class="font-bold text-xl mb-2 text-[#E07A5F]">${data.title}</h3>
+                        <p class="text-gray-600 mb-4">${data.description}</p>
+                        <h4 class="font-semibold mb-2">İlişkili Temel Dokümanlar:</h4>
+                        <ul class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                            ${data.docs.map(doc => `<li class="bg-gray-100 p-2 rounded-md">${doc}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+                
+                lifecycleStages.forEach(stage => {
+                    if(stage.dataset.stage === stageId){
+                        stage.classList.add('active');
+                    } else {
+                        stage.classList.remove('active');
+                    }
+                });
+            }
+
+            lifecycleStages.forEach(stage => {
+                stage.addEventListener('click', (e) => {
+                    const stageId = e.currentTarget.dataset.stage;
+                    showLifecycleDetails(stageId);
+                });
+            });
+            showLifecycleDetails('1'); 
+
+
+            const namingToolData = {
+                'SZL': { name: 'Sözleşmeler ve Hukuki Belgeler', types: { 'KKS': 'Kat Karşılığı İnşaat Sözleşmesi', 'TKS': 'Teknik Şartname', 'VEK': 'Vekaletname', 'AYS': 'Alt Yüklenici Sözleşmesi' }},
+                'TEK': { name: 'Teknik Dokümanlar', types: { 'MIM': 'Mimari Proje', 'STA': 'Statik Proje', 'MEK': 'Mekanik Tesisat Projesi', 'ELK': 'Elektrik Tesisat Projesi', 'ZET': 'Zemin Etüd Raporu', 'BTR': 'Beton Test Raporu' }},
+                'HUK': { name: 'Yasal ve İdari İzinler', types: { 'YR': 'Yapı Ruhsatı', 'YKI': 'Yapı Kullanım İzin Belgesi (İskân)', 'BEL': 'Belediye Yazışması', 'MYB': 'Müteahhit Yetki Belgesi' }},
+                'FIN': { name: 'Finansal Kayıtlar', types: { 'HAK': 'Hakediş Raporu', 'FAT': 'Fatura', 'ODE': 'Ödeme Emri/Dekontu', 'BUT': 'Bütçe Raporu' }},
+                'PYI': { name: 'Proje Yönetimi ve İletişim', types: { 'TT': 'Toplantı Tutanağı', 'SDR': 'Saha Denetim Raporu', 'IPR': 'İş Programı', 'DTF': 'Değişiklik Talep Formu' }},
+                'TAP': { name: 'Tapu ve Mülkiyet Kayıtları', types: { 'ATS': 'Arsa Tapu Senedi', 'KIB': 'Kat İrtifakı Belgesi', 'KMT': 'Kat Mülkiyeti Tapusu', 'TML': 'Temlik Sözleşmesi/Tapusu' }}
+            };
+
+            const projeKoduEl = document.getElementById('projeKodu');
+            const belgeKategoriEl = document.getElementById('belgeKategori');
+            const belgeTipiEl = document.getElementById('belgeTipi');
+            const tarihEl = document.getElementById('tarih');
+            const versiyonEl = document.getElementById('versiyon');
+            const kisaAciklamaEl = document.getElementById('kisaAciklama');
+            const sonucAdiEl = document.getElementById('sonucAdi');
+            const kopyalaButtonEl = document.getElementById('kopyalaButton');
+            const copyMessageEl = document.getElementById('copy-message');
+
+            function populateKategori() {
+                belgeKategoriEl.innerHTML = '<option value="">Seçiniz...</option>';
+                for (const kod in namingToolData) {
+                    const option = document.createElement('option');
+                    option.value = kod;
+                    option.textContent = `${kod} - ${namingToolData[kod].name}`;
+                    belgeKategoriEl.appendChild(option);
+                }
+            }
+
+            function populateTipi() {
+                const kategoriKod = belgeKategoriEl.value;
+                belgeTipiEl.innerHTML = '<option value="">Seçiniz...</option>';
+                if (kategoriKod && namingToolData[kategoriKod]) {
+                    const tipler = namingToolData[kategoriKod].types;
+                    for (const kod in tipler) {
+                        const option = document.createElement('option');
+                        option.value = kod;
+                        option.textContent = `${kod} - ${tipler[kod]}`;
+                        belgeTipiEl.appendChild(option);
+                    }
+                }
+                generateFilename();
+            }
+
+            function generateFilename() {
+                const projeKodu = projeKoduEl.value.trim() || '[ProjeKodu]';
+                const belgeKategori = belgeKategoriEl.value || '[Kategori]';
+                const belgeTipi = belgeTipiEl.value || '[Tip]';
+                const tarih = tarihEl.value ? tarihEl.value.replace(/-/g, '') : '[YYYYAAGG]';
+                const versiyon = versiyonEl.value.trim() || '[Versiyon]';
+                let kisaAciklama = kisaAciklamaEl.value.trim().replace(/\s+/g, '_');
+                kisaAciklama = kisaAciklama ? `_${kisaAciklama}` : '';
+
+                const uzantiMap = { 'TEK': '.dwg', 'FIN': '.xlsx', 'PYI': '.docx' };
+                const uzanti = uzantiMap[belgeKategori] || '.pdf';
+
+                sonucAdiEl.textContent = `${projeKodu}_${belgeKategori}_${belgeTipi}_${tarih}_${versiyon}${kisaAciklama}${uzanti}`;
+            }
+            
+            [projeKoduEl, belgeKategoriEl, belgeTipiEl, tarihEl, versiyonEl, kisaAciklamaEl].forEach(el => {
+                el.addEventListener('input', generateFilename);
+                el.addEventListener('change', generateFilename);
+            });
+            
+            belgeKategoriEl.addEventListener('change', populateTipi);
+            
+            kopyalaButtonEl.addEventListener('click', () => {
+                const textToCopy = sonucAdiEl.textContent;
+                if (!textToCopy) return;
+
+                const textArea = document.createElement("textarea");
+                textArea.value = textToCopy;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    copyMessageEl.classList.remove('hidden');
+                    setTimeout(() => copyMessageEl.classList.add('hidden'), 2000);
+                } catch (err) {
+                    console.error('Kopyalama başarısız oldu', err);
+                }
+                document.body.removeChild(textArea);
+            });
+
+            populateKategori();
+            generateFilename();
+            tarihEl.valueAsDate = new Date();
+            generateFilename();
+
+
+            const retentionData = {
+                labels: ['Ticari Defterler', 'Ticari Belgeler (Sözleşme vb.)', 'Vergi Belgeleri', 'Yıllara Sari İnşaat Evrakı', 'SGK / Personel Kayıtları', 'e-Defter ve Beratları', 'İnşaat Ruhsatı & İskan', 'Projeler ve Raporlar'],
+                datasets: [{
+                    label: 'Minimum Saklama Süresi (Yıl)',
+                    data: [10, 10, 5, 5.1, 10, 10, 30, 30], // Using large numbers for "Süresiz"
+                    backgroundColor: [
+                        'rgba(61, 64, 91, 0.7)',
+                        'rgba(61, 64, 91, 0.7)',
+                        'rgba(242, 204, 143, 0.7)',
+                        'rgba(242, 204, 143, 0.7)',
+                        'rgba(129, 178, 154, 0.7)',
+                        'rgba(61, 64, 91, 0.7)',
+                        'rgba(224, 122, 95, 0.7)',
+                        'rgba(224, 122, 95, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(61, 64, 91, 1)',
+                        'rgba(61, 64, 91, 1)',
+                        'rgba(242, 204, 143, 1)',
+                        'rgba(242, 204, 143, 1)',
+                        'rgba(129, 178, 154, 1)',
+                        'rgba(61, 64, 91, 1)',
+                        'rgba(224, 122, 95, 1)',
+                        'rgba(224, 122, 95, 1)'
+                    ],
+                    borderWidth: 1,
+                    notes: [
+                        'Kaynak: TTK Md. 82',
+                        'Kaynak: TTK Md. 82',
+                        'Kaynak: VUK Md. 253',
+                        'İşin bittiği yılı takip eden yıldan itibaren 5 yıl. Kaynak: VUK Md. 253',
+                        'Hizmet akdinin sona ermesinden sonra. Kaynak: SGK Mevzuatı',
+                        'Kaynak: GİB Tebliği, TTK, VUK',
+                        'Yasal zorunluluk olmasa da yapının ömrü boyunca saklanması tavsiye edilir. (Süresiz)',
+                        'Olası anlaşmazlıklar için yapının ömrü boyunca saklanması tavsiye edilir. (Süresiz)'
+                    ]
+                }]
+            };
+
+            const ctx = document.getElementById('retentionChart').getContext('2d');
+            const retentionChart = new Chart(ctx, {
+                type: 'bar',
+                data: retentionData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Saklama Süresi (Yıl)'
+                            },
+                             ticks: {
+                                callback: function(value, index, values) {
+                                    return value > 25 ? 'Süresiz' : value;
+                                }
+                            }
+                        },
+                        y: {
+                           ticks: {
+                                autoSkip: false
+                           }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    let value = context.raw;
+                                    if (value > 25) {
+                                        label += 'Süresiz';
+                                    } else if (value === 5.1) {
+                                        label += '5 Yıl (Özel Durumlu)';
+                                    } else {
+                                        label += value + ' Yıl';
+                                    }
+                                    return label;
+                                },
+                                afterLabel: function(context) {
+                                    return context.dataset.notes[context.dataIndex] || '';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
